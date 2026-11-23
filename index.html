@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hair Salon Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef2f9;--card:#fff;--ink:#14213d;--soft:#5b6785;--red:#d62839;--blue:#1d4ed8;--ok:#14804a;--okbg:#dcf5e6;--bad:#b4232b;--badbg:#fde4e5;--line:#d5dcec;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1426;--card:#17213b;--ink:#eef2fb;--soft:#a2aecb;--red:#ff5a67;--blue:#7aa2ff;--ok:#5fe0a0;--okbg:#12362a;--bad:#ff8a91;--badbg:#3d1a20;--line:#2a3658;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1426;--card:#17213b;--ink:#eef2fb;--soft:#a2aecb;--red:#ff5a67;--blue:#7aa2ff;--ok:#5fe0a0;--okbg:#12362a;--bad:#ff8a91;--badbg:#3d1a20;--line:#2a3658;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;font-weight:500;font-size:18px;line-height:1.5;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1,h2{font-family:Bungee,Impact,sans-serif;font-weight:400;line-height:1.15;margin:0 0 12px}
+h1{font-size:clamp(34px,9vw,52px)}h2{font-size:clamp(22px,6vw,30px)}
+.pole{height:14px;border-radius:7px;background:repeating-linear-gradient(-45deg,var(--red) 0 10px,#fff 10px 20px,var(--blue) 20px 30px,#fff 30px 40px);background-size:56px 56px}
+.track{height:14px;border-radius:7px;background:var(--line);overflow:hidden;margin:10px 0 16px}
+.fill{height:100%;width:0;border-radius:7px;background:repeating-linear-gradient(-45deg,var(--red) 0 10px,#fff 10px 20px,var(--blue) 20px 30px,#fff 30px 40px);background-size:56px 56px;transition:width .4s;animation:roll 1.2s linear infinite}
+@keyframes roll{to{background-position:56px 0}}
+@media (prefers-reduced-motion:reduce){.fill{animation:none;transition:none}}
+.card{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:20px}
+.hud{display:flex;justify-content:space-between;gap:8px;font-weight:800;font-size:16px;flex-wrap:wrap}
+.hud b{font-family:Bungee,sans-serif;font-weight:400;color:var(--red)}
+.q{font-size:22px;font-weight:800;margin:4px 0 16px}
+.blank{display:inline-block;min-width:60px;border-bottom:3px solid var(--blue);margin:0 4px}
+.opts{display:grid;gap:10px}
+button{font:inherit;font-weight:800;cursor:pointer;border-radius:14px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:12px 16px;text-align:left;min-height:48px}
+button:hover:not(:disabled){border-color:var(--blue)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+button.go{background:var(--red);border-color:var(--red);color:#fff;text-align:center;margin-top:16px;font-size:19px;width:100%}
+button.right{background:var(--okbg);border-color:var(--ok)}
+button.wrong{background:var(--badbg);border-color:var(--bad)}
+input[type=text]{font:inherit;font-weight:700;width:100%;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.fb{margin-top:14px;padding:12px 14px;border-radius:14px;font-weight:700}
+.fb.ok{background:var(--okbg);color:var(--ok)}.fb.no{background:var(--badbg);color:var(--bad)}
+.fb span{display:block;color:var(--ink);font-weight:500;margin-top:4px}
+.hint{color:var(--soft);font-size:16px}
+.big{font-family:Bungee,sans-serif;font-size:56px;color:var(--red);line-height:1}
+ul.rev{padding-left:20px;margin:8px 0}ul.rev li{margin:6px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row button{flex:1}
+</style>
+</head>
+<body>
+<main>
+<div class="pole" aria-hidden="true"></div>
+<div id="app" style="margin-top:16px"></div>
+</main>
+<script>
+const LV=[
+{n:"Level 1: Hair words",i:"Match each word to its meaning. Win 10 points for every right answer.",qs:[
+["Very short hair, cut all over with clippers.",["A buzz cut","A bob","A perm","Highlights"],"A buzz cut is very short, even hair."],
+["Hair tied together at the back of your head.",["A ponytail","Extensions","A barber","A bob"],"You tie hair back into a ponytail."],
+["Lighter streaks of colour in your hair.",["Highlights","Dreadlocks","A perm","A buzz cut"],"Highlights are usually plural: some highlights."],
+["A short haircut, often at chin length.",["A bob","A ponytail","Extensions","A perm"],"A bob is short and neat."],
+["A treatment that makes straight hair curly for months.",["A perm","Highlights","A bob","Extensions"],"Perm is short for permanent wave."],
+["Extra hair added to make your hair longer or thicker.",["Extensions","A ponytail","A buzz cut","A barber"],"Hair extensions are always plural."],
+["Hair twisted into long, thick ropes.",["Dreadlocks","A bob","A perm","Highlights"],"Dreadlocks are plural: she has dreadlocks."],
+["Sophie cuts, colours and styles hair in a salon. She is ___.",["a hairdresser","a perm","a ponytail","dreadlocks"],"A hairdresser works with all kinds of hair."],
+["You go to ___ for a shave and a beard trim.",["a barber","a perm","a bob","extensions"],"A barber traditionally cuts men’s hair and trims beards."],
+["That short bob really ___ you!",["suits","fits","matches","puts"],"A hairstyle suits you = it looks good on you."],
+["These jeans are too small. They don’t ___ me.",["fit","suit","match","wear"],"Clothes fit = they are the right size."],
+["Her red lipstick ___ her red dress.",["matches","fits","suits","puts"],"Match = go well together, same colour or style."]]},
+{n:"Level 2: Choose the tense",i:"Present simple, present continuous or past simple? Read the clues: always, now, yesterday.",qs:[
+["A barber usually ___ beards.",["trims","is trimming","trimmed","trim"],"Usually = a routine, so present simple: he trims."],
+["My sister ___ her hair every Saturday.",["washes","is washing","washed","wash"],"Every Saturday = routine. She washes."],
+["___ your hairdresser work on Sundays?",["Does","Do","Is","Are"],"Present simple question: Does + he/she/it + verb."],
+["He ___ like dreadlocks.",["doesn’t","don’t","isn’t","aren’t"],"Present simple negative with he: doesn’t + verb."],
+["Shh! The hairdresser ___ my hair right now.",["is cutting","cuts","cut","cutting"],"Right now = present continuous: is + verb-ing."],
+["Look! She ___ a ponytail today.",["is wearing","wears","wear","wore"],"Look! = it is happening now. Present continuous."],
+["What ___ you doing? – I’m trying a new hairstyle.",["are","do","did","is"],"Present continuous question: are you doing?"],
+["They ___ at the salon at the moment.",["are waiting","wait","waited","waits"],"At the moment = present continuous."],
+["Yesterday I ___ highlights.",["got","get","am getting","gets"],"Yesterday = past simple. Get becomes got."],
+["She ___ her hair last week.",["dyed","dyes","is dyeing","dye"],"Last week = finished time, so past simple: dyed."],
+["We ___ to the barber on Friday.",["went","go","are going","goed"],"Go is irregular: go, went."],
+["He didn’t ___ a perm last year.",["want","wanted","wants","wanting"],"After didn’t, use the base verb: want."]]},
+{n:"Boss level: Type the verb",i:"Write the correct form of the verb in brackets. Win 15 points for every right answer.",qs:[
+["My barber always ___ (use) a razor for the neck.",["uses"],"Always + he/she/it: uses."],
+["Look! The hairdresser ___ (put) in my extensions.",["is putting"],"Look! = now: is putting."],
+["Yesterday she ___ (cut) her hair into a bob.",["cut"],"Cut is irregular: cut, cut."],
+["He ___ (not / like) his buzz cut last year.",["didn't like","did not like","didnt like"],"Past simple negative: didn’t + like."],
+["Right now I ___ (wait) for my perm to finish.",["am waiting","'m waiting","m waiting"],"Right now: am waiting."],
+["She ___ (wear) a ponytail to work every day.",["wears"],"Every day: wears."],
+["Last Saturday we ___ (go) to the salon together.",["went"],"Last Saturday: went."]]}];
+
+const app=document.getElementById("app");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm=s=>s.trim().toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g," ");
+const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+const blank=t=>esc(t).replace("___",'<span class="blank">&nbsp;</span>');
+const TOTAL=LV.reduce((n,l)=>n+l.qs.length,0);
+let name,li,qi,score,streak,best,right,done,mistakes;
+
+function hud(){return `<div class="hud"><span>${esc(name)}</span><span>Score <b>${score}</b></span><span>Streak <b>${streak}</b> 🔥</span></div>
+<div class="track" role="progressbar" aria-valuemin="0" aria-valuemax="${TOTAL}" aria-valuenow="${done}"><div class="fill" style="width:${done/TOTAL*100}%"></div></div>`}
+
+function start(){
+  app.innerHTML=`<h1>Hair Salon Quest ✂️</h1>
+  <div class="card"><p>Learn hair words and practise three tenses. Earn points, build a streak and reach <b>Master Stylist</b>.</p>
+  <p class="hint">32 questions. Streak bonus: +5 points from 3 right answers in a row.</p>
+  <label for="nm"><b>Your name</b></label>
+  <input id="nm" type="text" maxlength="30" autocomplete="off" placeholder="Type your name">
+  <button class="go" id="st">Start the game</button></div>`;
+  const go=()=>{name=document.getElementById("nm").value.trim()||"Player";li=0;qi=0;score=0;streak=0;best=0;right=0;done=0;mistakes=[];intro()};
+  document.getElementById("st").onclick=go;
+  document.getElementById("nm").onkeydown=e=>{if(e.key==="Enter")go()};
+}
+
+function intro(){
+  const l=LV[li];
+  app.innerHTML=hud()+`<div class="card"><h2>${l.n}</h2><p>${l.i}</p><button class="go" id="g">Let’s go</button></div>`;
+  document.getElementById("g").onclick=ask;
+}
+
+function ask(){
+  const l=LV[li],q=l.qs[qi],typed=li===2,pts=typed?15:10;
+  let body;
+  if(typed) body=`<input id="ans" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Your answer"><button class="go" id="ck">Check</button>`;
+  else body=`<div class="opts">${shuffle(q[1]).map(o=>`<button data-o="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
+  app.innerHTML=hud()+`<div class="card"><p class="hint">${l.n} · question ${qi+1} of ${l.qs.length}</p><p class="q">${blank(q[0])}</p>${body}<div id="fb" aria-live="polite"></div></div>`;
+  const finish=ok=>{
+    let gain=0,msg;
+    if(ok){right++;streak++;best=Math.max(best,streak);gain=pts+(streak>=3?5:0);score+=gain;msg=`Correct! +${gain} points`}
+    else{streak=0;mistakes.push([q[0].replace("___","…"),q[1][0]]);msg=`Not quite. Answer: <b>${esc(q[1][0])}</b>`}
+    done++;
+    document.getElementById("fb").innerHTML=`<div class="fb ${ok?"ok":"no"}">${msg}<span>${esc(q[2])}</span></div><button class="go" id="nx">Next</button>`;
+    document.getElementById("nx").focus();
+    document.getElementById("nx").onclick=()=>{qi++;if(qi>=l.qs.length){qi=0;li++;li>=LV.length?end():intro()}else ask()};
+  };
+  if(typed){
+    const inp=document.getElementById("ans"),ck=document.getElementById("ck");inp.focus();
+    const check=()=>{if(!inp.value.trim())return;inp.disabled=true;ck.remove();finish(q[1].some(a=>norm(a)===norm(inp.value)))};
+    ck.onclick=check;inp.onkeydown=e=>{if(e.key==="Enter")check()};
+  }else{
+    document.querySelectorAll(".opts button").forEach(b=>b.onclick=()=>{
+      const ok=b.dataset.o===q[1][0];
+      document.querySelectorAll(".opts button").forEach(x=>{x.disabled=true;if(x.dataset.o===q[1][0])x.classList.add("right")});
+      if(!ok)b.classList.add("wrong");finish(ok);
+    });
+  }
+}
+
+function end(){
+  const pct=Math.round(right/TOTAL*100);
+  const rank=pct>=90?"Master Stylist":pct>=70?"Stylist":pct>=50?"Junior Stylist":"Apprentice";
+  const res=`${name}: ${score} points, ${right}/${TOTAL} correct (${pct}%), best streak ${best}, rank ${rank}`;
+  app.innerHTML=`<h1>Game over!</h1><div class="card"><div class="big">${score}</div><p><b>${esc(rank)}</b> · ${right} of ${TOTAL} correct · best streak ${best}</p>
+  ${mistakes.length?`<p><b>Review these:</b></p><ul class="rev">${mistakes.map(m=>`<li>${esc(m[0])} → <b>${esc(m[1])}</b></li>`).join("")}</ul>`:`<p>No mistakes. Perfect!</p>`}
+  <p class="hint">Copy your result and send it to your teacher.</p>
+  <div class="row"><button id="cp">Copy my result</button><button class="go" style="margin-top:0" id="ag">Play again</button></div><p id="cm" class="hint" aria-live="polite"></p></div>`;
+  document.getElementById("ag").onclick=start;
+  document.getElementById("cp").onclick=async()=>{
+    const m=document.getElementById("cm");
+    try{await navigator.clipboard.writeText(res);m.textContent="Copied!"}catch(e){m.textContent=res}
+  };
+}
+start();
+</script>
+</body>
+</html>
